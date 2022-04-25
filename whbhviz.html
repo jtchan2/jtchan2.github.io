@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .bar {
+            fill: yellow;
+        }
+        .bar2 {
+            fill: coral;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <title>Black Hat</title>
+</head>
+<body>
+<div style="width: 100%;">
+    <div style="width: 50%; height: 100px; float: left;" id="left">
+        <h3>Black Hat Visualization</h3>
+        <p>Reason for Bad</p>
+        <ul>
+            <li>Colors make chart hard to read</li>
+            <li>Viz title is incorrectly representing data</li>
+            <li>Some data arent even shown</li>
+            <li>axis titles are labeled incorrectly</li>
+        </ul>
+    </div>
+    <div style="margin-left: 50%; height: 100px; " id="right">
+        <h3>White Hat Visualization</h3>
+        <p>Reason for Good</p>
+        <ul>
+            <li>Color easier for viewer to see</li>
+            <li>Made Titles fit into Chart and are correctly labeled</li>
+            <li>Hovering over bar shows bar information</li>
+            <li>Removed data that would not be shown</li>
+            <li>Viz title accurately shows what data is meant to represent</li>
+        </ul>
+    </div>
+</div>
+<script>
+    var canvasWidth=700;
+    var canvasHeight=700;
+    var margin = 200;
+    var dataset;
+    const format= d3.format(".2s");
+    //Black Hat Viz
+    var svg = d3.select("#left").append("svg")
+        .attr("width",  canvasWidth)
+        .attr("height", canvasHeight)
+    var width = svg.attr("width") - margin;
+    var height = svg.attr("height") - margin;
+    svg.append("text")
+        .attr("transform", "translate(100, 0)")
+        .attr("x", 85)
+        .attr("y", 50)
+        .attr("font-size", "24px")
+        .text("Eggnog Fluid Sales 2000-2017")
+
+    var xScale= d3.scaleLinear().range([0,width]);
+
+    var yScale= d3.scaleBand().range([height,0]).padding(0.4);
+    var container_g = svg.append("g")
+        .attr("transform",
+            "translate(" + 100 + ", " + 100 + ")");
+    //TODO CUT DOWN DATA
+    d3.csv("PandemicData.csv").then(data=> {
+        console.log(data)
+        xScale.domain([0, d3.max(data, function (d){
+            return +d.Death_toll;
+        })]);
+        yScale.domain(data.map(function(d){
+            return d.Name;
+        }))
+        container_g.append("g")
+            .attr("transform", "translate(0, " + height + ")")
+            .call(d3.axisBottom(xScale).tickFormat(function(d) {
+                return format(d);
+            }).ticks(10))
+            .append("text")
+            .attr("y", 50)
+            .attr("x", 250)
+            .attr("stroke", "black")
+            .text("Year")
+        container_g.append("g")
+            .call(d3.axisLeft(yScale))
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -20)
+            .attr("x", -200)
+            .attr("dy", "-5.1em")
+            .attr("stroke", "black")
+            .text("Pounds of Milk")
+        container_g.selectAll(".bar").data(data).enter().append("rect").attr("class", "bar")
+            .attr("x", 0)
+            .attr("y", function(d){
+                return yScale(d.Name);
+            })
+            .attr("width", function(d){
+                console.log(width - xScale(d.Death_toll))
+                return xScale(d.Death_toll);
+            })
+            .attr("height", yScale.bandwidth())
+        console.log(width-xScale(data[3].Death_toll))
+    })
+    //White Hat Viz
+    var svgR = d3.select("#right").append("svg")
+        .attr("width",  canvasWidth)
+        .attr("height", canvasHeight)
+    var width2 = svgR.attr("width") - margin;
+    var height2 = svgR.attr("height") - margin;
+    svgR.append("text")
+        .attr("transform", "translate(100, 0)")
+        .attr("x", 85)
+        .attr("y", 50)
+        .attr("font-size", "24px")
+        .text("History of Pandemics Greater than 1 Mil death")
+
+    var xScale2= d3.scaleLinear().range([0,width2]);
+
+    var yScale2= d3.scaleBand().range([height2,0]).padding(0.4);
+    var container_g2 = svgR.append("g")
+        .attr("transform",
+            "translate(" + 100 + ", " + 100 + ")");
+    //TODO CUT DOWN DATA
+    d3.csv("PandemicCleaned.csv").then(data=> {
+        console.log(data)
+        xScale2.domain([0, d3.max(data, function (d){
+            return +d.Death_toll;
+        })]);
+        yScale2.domain(data.map(function(d){
+            return d.Name;
+        }))
+        container_g2.append("g")
+            .attr("transform", "translate(0, " + height2 + ")")
+            .call(d3.axisBottom(xScale2).tickFormat(function(d) {
+                return format(d);
+            }).ticks(10))
+            .append("text")
+            .attr("y", 50)
+            .attr("x", 250)
+            .attr("stroke", "black")
+            .text("Number of Deaths")
+        container_g2.append("g")
+            .call(d3.axisLeft(yScale2))
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -40)
+            .attr("x", -200)
+            .attr("dy", "-5.1em")
+            .attr("stroke", "black")
+            .text("Pandemic")
+        container_g2.selectAll(".bar2").data(data).enter().append("rect").attr("class", "bar2")
+            .attr("x", 0)
+            .attr("y", function(d){
+                return yScale2(d.Name);
+            })
+            .attr("width", function(d){
+                console.log(width2 - xScale2(d.Death_toll))
+                return xScale2(d.Death_toll);
+            })
+            .attr("height", yScale2.bandwidth()).append("title").text(function(d){
+            return "Pandemic: " +d.Name+"\nDeath: "+format(d.Death_toll);
+        })
+        console.log(width2-xScale2(data[3].Death_toll))
+    })
+
+</script>
+
+</body>
+</html>
