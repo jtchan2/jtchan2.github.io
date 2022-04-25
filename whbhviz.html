@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <style>
-        .bar {
-            fill: yellow;
+        .bar{
+            visibility: visible;
         }
         .bar2 {
             fill: coral;
@@ -38,7 +38,6 @@
     </div>
 </div>
 <script>
-    //All data came from: https://www.visualcapitalist.com/history-of-pandemics-deadliest/
     var canvasWidth=700;
     var canvasHeight=700;
     var margin = 200;
@@ -60,6 +59,7 @@
     var xScale= d3.scaleLinear().range([0,width]);
 
     var yScale= d3.scaleBand().range([height,0]).padding(0.4);
+    var sequentialScale = d3.scaleSequential(d3.interpolateTurbo);
     var container_g = svg.append("g")
         .attr("transform",
             "translate(" + 100 + ", " + 100 + ")");
@@ -72,6 +72,9 @@
         yScale.domain(data.map(function(d){
             return d.Name;
         }))
+        sequentialScale.domain([0,d3.max(data,function(d){
+            return +d.Death_toll;
+        })])
         container_g.append("g")
             .attr("transform", "translate(0, " + height + ")")
             .call(d3.axisBottom(xScale).tickFormat(function(d) {
@@ -100,7 +103,9 @@
                 console.log(width - xScale(d.Death_toll))
                 return xScale(d.Death_toll);
             })
-            .attr("height", yScale.bandwidth())
+            .attr("height", yScale.bandwidth()).attr("fill", function(d){
+                return sequentialScale(+d.Death_toll)
+        })
         console.log(width-xScale(data[3].Death_toll))
     })
     //White Hat Viz
